@@ -1,3 +1,6 @@
 [submodule "Hydra-IPC"]
 	path = Hydra-IPC
 	url = https://github.com/DIA4A/Hydra-IPC
+[submodule "MinHook"]
+	path = MinHook
+	url = https://github.com/TsudaKageyu/minhook.git
