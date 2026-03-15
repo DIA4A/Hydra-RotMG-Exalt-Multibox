@@ -1,0 +1,3 @@
+[submodule "Hydra-IPC"]
+	path = Hydra-IPC
+	url = https://github.com/DIA4A/Hydra-IPC

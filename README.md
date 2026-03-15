@@ -10,17 +10,17 @@ This repository serves as a practical, high-stress Proof of Concept for the **[H
 
 Operating on top of a game environment, this PoC seamlessly synchronizes action instances across distinct processes by integrating itself into a core function within the main loop of the process. It is provided strictly to demonstrate the speed, ease of use, and state-sharing capabilities of the underlying Hydra architecture.
 
-## Ingame footage
-<img src="assets/hydra-poc.gif" alt="Ingame demonstration of the PoC" width="800"/>
+<video autoplay loop muted playsinline width="800">
+  <source src="https://github.com/user-attachments/assets/cce2edcd-fbef-444f-b70b-67479000c8e5.mp4" type="video/mp4">
+</video>
 
 ## Build Instructions
-This project requires **Visual Studio 2026**, **C++20**, and the core Hydra library in the same parent folder to compile. It targets **x64** architecture exclusively.
+This project requires **Visual Studio 2026** and **C++20** to compile. It targets **x64** architecture exclusively.
 
-1. Clone this repository: `git clone https://github.com/DIA4A/Hydra-RotMG-Exalt-Multibox.git`
-2. Ensure you have the Hydra IPC library in the same parent folder as Hydra-RotMG-Exalt-Multibox.
-3. Open the solution file in Visual Studio 2026.
-4. Set the Build Configuration to **Release** or **Debug** and Platform to **x64**.
-5. Build the solution. The compiled binary will be located in `/x64/Release/` (or `/x64/Debug/` respectively).
+1. Clone this repository with the recursive flag to get the required submodules: `git clone https://github.com/DIA4A/Hydra-RotMG-Exalt-Multibox.git --recursive`
+2. Open the solution file in Visual Studio 2026.
+3. Set the Build Configuration to **Release** or **Debug** and Platform to **x64**.
+4. Build the solution. The compiled binary will be located in `/x64/Release/` (or `/x64/Debug/` respectively).
 
 ## Third-Party Libraries
 This Proof of Concept relies on the following open-source libraries:
