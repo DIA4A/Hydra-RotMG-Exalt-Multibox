@@ -11,7 +11,7 @@ This repository serves as a practical, high-stress Proof of Concept for the **[H
 Operating on top of a game environment, this PoC seamlessly synchronizes action instances across distinct processes by integrating itself into a core function within the main loop of the process. It is provided strictly to demonstrate the speed, ease of use, and state-sharing capabilities of the underlying Hydra architecture.
 
 <video autoplay loop muted playsinline width="800">
-  <source src="https://github.com/user-attachments/assets/cce2edcd-fbef-444f-b70b-67479000c8e5.mp4" type="video/mp4">
+  <source src="https://github.com/user-attachments/assets/cce2edcd-fbef-444f-b70b-67479000c8e5" type="video/mp4">
 </video>
 
 ## Build Instructions
