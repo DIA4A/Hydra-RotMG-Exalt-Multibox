@@ -1,4 +1,5 @@
 #include "Console.h"
+#include "../dllmain.h"
 #include <HydraPeer.h>
 
 namespace Console
@@ -14,7 +15,7 @@ namespace Console
 
 	void Log(const char* szFormat, ...)
 	{
-		int32_t nSlot = HydraIPC::Peer::GetMySlotIndex();
+		int32_t nSlot = g_Peer.GetMySlotIndex();
 		if (nSlot >= 0)
 		{
 			printf("[Peer %d] ", nSlot);

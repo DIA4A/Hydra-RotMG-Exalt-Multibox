@@ -26,6 +26,7 @@
 #include <cstdio>
 #include <cstdarg>
 #include <chrono>
+#include "dllmain.h"
 
 #include <HydraPeer.h>
 using namespace HydraIPC;
@@ -135,26 +136,26 @@ long long g_nForceInteractUntil = 0;
 
 void RegisterHandlers()
 {
-	Peer::RegisterHandler(CmdNexus, [](uint32_t uSender, const void*, uint32_t)
+	g_Peer.RegisterHandler(CmdNexus, [](uint32_t uSender, const void*, uint32_t)
 		{
 			Console::Log("CmdNexus from slot %u", uSender);
 			g_bShouldEscapeToNexus = true;
 		});
 
-	Peer::On<Cmd::UseAbility>(CmdUseAbility, [](uint32_t uSender, const Cmd::UseAbility& cmd)
+	g_Peer.On<Cmd::UseAbility>(CmdUseAbility, [](uint32_t uSender, const Cmd::UseAbility& cmd)
 		{
 			g_vecAbilityPositionOverride = { cmd.flX, cmd.flY };
 			g_bForceUseAbility = true;
 		});
 
 	// too lazy to do the sending of the packet, if you imagine it hard enough in your head you can get the picture of how'd it work
-	Peer::On<Cmd::BagDrop>(CmdBagDrop, [](uint32_t uSender, const Cmd::BagDrop& cmd)
+	g_Peer.On<Cmd::BagDrop>(CmdBagDrop, [](uint32_t uSender, const Cmd::BagDrop& cmd)
 		{
 			Console::Log("Bag dropped from slot %u: type=%d at (%.1f, %.1f)",
 				uSender, cmd.nBagType, cmd.flX, cmd.flY);
 		});
 
-	Peer::RegisterHandler(CmdRequestTome, [](uint32_t uSender, const void*, uint32_t)
+	g_Peer.RegisterHandler(CmdRequestTome, [](uint32_t uSender, const void*, uint32_t)
 		{
 			Console::Log("Tome request from slot %u", uSender);
 			if (g_pMapViewService && g_pMapViewService->playerExist() && g_pPlayer)
@@ -172,22 +173,22 @@ void RegisterHandlers()
 			}
 		});
 
-	Peer::On<PingPayload>(CmdPing, [](uint32_t uSender, const PingPayload& ping)
+	g_Peer.On<PingPayload>(CmdPing, [](uint32_t uSender, const PingPayload& ping)
 		{
 			Console::Log("Ping from slot %u (ts=%u) -> Pong", uSender, ping.nTimestamp);
 
 			PingPayload pong;
 			pong.nTimestamp = GetCurrentMillis();
-			Peer::Send(CmdPong, pong, TargetSlot(uSender));
+			g_Peer.Send(CmdPong, pong, TargetSlot(uSender));
 		});
 
-	Peer::On<PingPayload>(CmdPong, [](uint32_t uSender, const PingPayload& pong)
+	g_Peer.On<PingPayload>(CmdPong, [](uint32_t uSender, const PingPayload& pong)
 		{
 			long long nTimeDelta = GetCurrentMillis() - pong.nTimestamp;
 			Console::Log("Pong from slot %u (RTT ~%u ms)", uSender, nTimeDelta);
 		});
 
-	Peer::SetDefaultHandler([](uint32_t uSender, uint32_t uType, const void*, uint32_t)
+	g_Peer.SetDefaultHandler([](uint32_t uSender, uint32_t uType, const void*, uint32_t)
 		{
 			Console::Log("Unhandled command 0x%04X from slot %u", uType, uSender);
 		});
@@ -195,11 +196,11 @@ void RegisterHandlers()
 
 void Update(SDK::Player* player)
 {
-	Peer::UpdateSpeed(player->_speed());
-	Peer::UpdateObjectId(player->objectId());
-	Peer::UpdateWorldId(GetGameId());
-	Peer::UpdateSlowed(player->HasCondition(SDK::Slowed));
-	Peer::UpdateConnectedInGame(g_pMapViewService->playerExist());
+	g_Peer.UpdateSpeed(player->_speed());
+	g_Peer.UpdateObjectId(player->objectId());
+	g_Peer.UpdateWorldId(GetGameId());
+	g_Peer.UpdateSlowed(player->HasCondition(SDK::Slowed));
+	g_Peer.UpdateConnectedInGame(g_pMapViewService->playerExist());
 
 	if (g_bShouldRequestTome)
 	{
@@ -207,7 +208,7 @@ void Update(SDK::Player* player)
 		float flHpPerc = float(player->hp()) / float(player->maxHp());
 		if (flHpPerc <= g_flRequestTomeThreshold && nCurrentTime - g_nLastTomeRequest > REQUEST_TOME_INTERVAL_MS)
 		{
-			Peer::RequestTome();
+			g_Peer.RequestTome();
 			g_nLastTomeRequest = nCurrentTime;
 		}
 	}
@@ -217,9 +218,9 @@ void LeaderTick(SDK::Player* player)
 {
 	int nWorldId = GetGameId();
 
-	Peer::BeginStateUpdate();
+	g_Peer.BeginStateUpdate();
 	{
-		auto& s = Peer::State();
+		auto& s = g_Peer.State();
 
 		s.posX = player->x();
 		s.posY = player->y();
@@ -245,10 +246,10 @@ void LeaderTick(SDK::Player* player)
 		s.bInteract = g_bIsInteracting;
 		g_bIsInteracting = false;
 	}
-	Peer::EndStateUpdate();
+	g_Peer.EndStateUpdate();
 
-	int32_t nSpeed = Peer::GetMinPeerSpeed(nWorldId);
-	if (Peer::IsAnyPeerSlowed(nWorldId))
+	int32_t nSpeed = g_Peer.GetMinPeerSpeed(nWorldId);
+	if (g_Peer.IsAnyPeerSlowed(nWorldId))
 	{
 		nSpeed = 10;
 	}
@@ -257,8 +258,8 @@ void LeaderTick(SDK::Player* player)
 	long long nCurrentTime = GetCurrentMillis();
 	if (nCurrentTime - g_nLastPurge > PURGE_INTERVAL_MS)
 	{
-		Peer::PurgeStale();
-		Peer::RefreshPeerCount();
+		g_Peer.PurgeStale();
+		g_Peer.RefreshPeerCount();
 		g_nLastPurge = nCurrentTime;
 	}
 }
@@ -266,7 +267,7 @@ void LeaderTick(SDK::Player* player)
 void FollowerTick(SDK::Player* player)
 {
 	LeaderBroadcastState state;
-	if (Peer::PollState(state) && state.leaderWorldId == GetGameId())
+	if (g_Peer.PollState(state) && state.leaderWorldId == GetGameId())
 	{
 		float flDeltaX = state.posX - player->x();
 		float flDeltaY = state.posY - player->y();
@@ -318,7 +319,7 @@ void FollowerTick(SDK::Player* player)
 	long long nCurrentTime = GetCurrentMillis();
 	if (nCurrentTime - g_nLastPurge > PURGE_INTERVAL_MS)
 	{
-		Peer::WatchdogCheckLeader();
+		g_Peer.WatchdogCheckLeader();
 		g_nLastPurge = nCurrentTime;
 	}
 }
@@ -332,9 +333,9 @@ void PrintStatus()
 	}
 	g_nLastStatus = nCurrentTime;
 
-	bool bIsLeader = Peer::IsLeader();
-	int32_t nPeers = Peer::GetPeerCount();
-	int32_t nLeaderSlot = Peer::GetLeaderSlot();
+	bool bIsLeader = g_Peer.IsLeader();
+	int32_t nPeers = g_Peer.GetPeerCount();
+	int32_t nLeaderSlot = g_Peer.GetLeaderSlot();
 
 	Console::Log("Status: %s | leader=slot %d | peers=%d",
 		bIsLeader ? "LEADER" : "FOLLOWER", nLeaderSlot, nPeers);
@@ -359,7 +360,7 @@ bool __stdcall Player$$Update(SDK::Player* thisptr, int time, int elapsed, const
 
 	g_pPlayer = thisptr;
 
-	bool bIsLeader = Peer::IsLeader();
+	bool bIsLeader = g_Peer.IsLeader();
 	if (bIsLeader != g_bWasLeader)
 	{
 		Console::Log("Role changed: %s -> %s",
@@ -457,10 +458,10 @@ bool UnityEngine_Input$$GetKeyDown(int nKey, const MethodInfo* method)
 	{
 		if (nKey == g_pSettingsManager->GetKeyCode()(SDK::UseSpecialAbility))
 		{
-			if (bIsKeyDown && !g_bIsUsingAbility && Peer::IsLeader())
+			if (bIsKeyDown && !g_bIsUsingAbility && g_Peer.IsLeader())
 			{
 				SDK::Vector2 vecMousePosition = g_pApplicationManager->_inputManager()->GetMousePosition()();
-				Peer::UseAbility(vecMousePosition.x, vecMousePosition.y);
+				g_Peer.UseAbility(vecMousePosition.x, vecMousePosition.y);
 			}
 			g_bIsUsingAbility = bIsKeyDown;
 			if (g_bForceUseAbility)
@@ -502,9 +503,9 @@ bool UnityEngine_Input$$GetKeyDown(int nKey, const MethodInfo* method)
 
 	if (nKey == g_pSettingsManager->GetKeyCode()(SDK::EscapeToNexus))
 	{
-		if (bIsKeyDown && !g_bIsEscapingToNexus && Peer::IsLeader())
+		if (bIsKeyDown && !g_bIsEscapingToNexus && g_Peer.IsLeader())
 		{
-			Peer::Nexus();
+			g_Peer.Nexus();
 		}
 
 		g_bIsEscapingToNexus = bIsKeyDown;
@@ -582,17 +583,17 @@ LRESULT CALLBACK HookedWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 {
 	if (uMsg == WM_ACTIVATEAPP && wParam == TRUE)
 	{
-		if (Peer::IsJoined() && !Peer::IsLeader())
+		if (g_Peer.IsJoined() && !g_Peer.IsLeader())
 		{
-			Peer::ClaimLeadership();
+			g_Peer.ClaimLeadership();
 			Console::Log("WM_ACTIVATEAPP -> claimed leadership");
 		}
 	}
 	if (uMsg == WM_DESTROY)
 	{
-		if (Peer::IsJoined())
+		if (g_Peer.IsJoined())
 		{
-			Peer::Leave();
+			g_Peer.Leave();
 			Console::Log("WM_DESTROY -> left hive");
 		}
 	}
@@ -645,15 +646,15 @@ DWORD WINAPI MainThread(LPVOID)
 	char szName[32];
 	sprintf_s(szName, "Peer_%u", GetCurrentProcessId());
 
-	if (!Peer::Join(szName, GetCurrentProcessId()))
+	if (!g_Peer.Join(szName, GetCurrentProcessId()))
 	{
 		Console::Log("Failed to join hive!");
 		return 1;
 	}
 
-	Console::Log("Joined hive as '%s' (slot %d)", szName, Peer::GetMySlotIndex());
+	Console::Log("Joined hive as '%s' (slot %d)", szName, g_Peer.GetMySlotIndex());
 
-	if (Peer::IsLeader())
+	if (g_Peer.IsLeader())
 	{
 		Console::Log("First peer, auto claimed leadership");
 		g_bWasLeader = true;

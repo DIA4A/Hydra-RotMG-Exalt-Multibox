@@ -147,6 +147,7 @@
     <ClCompile Include="Utils\Console.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="dllmain.h" />
     <ClInclude Include="il2cpp\engine.h" />
     <ClInclude Include="il2cpp\il2cpp.h" />
     <ClInclude Include="il2cpp\lib\api\array.h" />
