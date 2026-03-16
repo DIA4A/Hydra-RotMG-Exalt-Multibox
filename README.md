@@ -10,9 +10,7 @@ This repository serves as a practical, high-stress Proof of Concept for the **[H
 
 Operating on top of a game environment, this PoC seamlessly synchronizes action instances across distinct processes by integrating itself into a core function within the main loop of the process. It is provided strictly to demonstrate the speed, ease of use, and state-sharing capabilities of the underlying Hydra architecture.
 
-<video autoplay loop muted playsinline width="800">
-  <source src="https://github.com/DIA4A/Hydra-RotMG-Exalt-Multibox/releases/download/readme-media/hydrapoc.mp4" type="video/mp4">
-</video>
+https://github.com/user-attachments/assets/befb2bb4-9121-4a61-86be-568517023255
 
 ## Build Instructions
 This project requires **Visual Studio 2026** and **C++20** to compile. It targets **x64** architecture exclusively.
