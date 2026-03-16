@@ -30,7 +30,8 @@
 #include <HydraPeer.h>
 using namespace HydraIPC;
 
-#include "MinHook/MinHook.h"
+#include <MinHook.h>
+
 #include "il2cpp/il2cpp.h"
 #include "SDK/SDK.h"
 #include "Utils/Console.h"
