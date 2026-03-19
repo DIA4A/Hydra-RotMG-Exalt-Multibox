@@ -42,20 +42,6 @@ static constexpr int PURGE_INTERVAL_MS = 5000; // Purge stale peers every 5s
 static constexpr int STATUS_INTERVAL_MS = 3000; // Print status every 3s
 static constexpr int REQUEST_TOME_INTERVAL_MS = 1000; // Request tome every 1s
 
-// user defined commands to utilize the library without altering it
-#pragma region User Defined Commands
-enum TestCommands : uint32_t
-{
-	CmdPing = CmdUserDefined,
-	CmdPong,
-};
-
-struct PingPayload
-{
-	long long nTimestamp;
-};
-#pragma endregion
-
 volatile bool g_bRunning = false;
 HANDLE g_hMainThread = NULL;
 long long g_nLastPurge = 0;
@@ -173,16 +159,16 @@ void RegisterHandlers()
 			}
 		});
 
-	g_Peer.On<PingPayload>(CmdPing, [](uint32_t uSender, const PingPayload& ping)
+	g_Peer.On<Cmd::Ping>(CmdPing, [](uint32_t uSender, const Cmd::Ping& ping)
 		{
 			Console::Log("Ping from slot %u (ts=%u) -> Pong", uSender, ping.nTimestamp);
 
-			PingPayload pong;
+			Cmd::Ping pong;
 			pong.nTimestamp = GetCurrentMillis();
 			g_Peer.Send(CmdPong, pong, TargetSlot(uSender));
 		});
 
-	g_Peer.On<PingPayload>(CmdPong, [](uint32_t uSender, const PingPayload& pong)
+	g_Peer.On<Cmd::Ping>(CmdPong, [](uint32_t uSender, const Cmd::Ping& pong)
 		{
 			long long nTimeDelta = GetCurrentMillis() - pong.nTimestamp;
 			Console::Log("Pong from slot %u (RTT ~%u ms)", uSender, nTimeDelta);
